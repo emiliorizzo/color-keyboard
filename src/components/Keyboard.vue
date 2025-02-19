@@ -9,7 +9,7 @@
         option(v-for="(program, index) in programs" :key="index" :value="index") {{ program }}
 
     .keyboard
-      KeyNote(v-for="([note, {color}], index) in Object.entries(notes)" :key="note" :note="note" :color="color" :isActive="activeNotes.includes(note)" :class="{ black: isBlackKey(note) }"  @note-on="handleNoteOn" @note-off="handleNoteOff") @note-off="handleNoteOff")
+      KeyNote(v-for="([note, {color}], index) in Object.entries(notes)" :key="note" :note="note" :color="color" :isBlack="isBlackKey(note)" :isActive="activeNotes.includes(note)" :class="{ black: isBlackKey(note) }"  @note-on="handleNoteOn" @note-off="handleNoteOff") @note-off="handleNoteOff")
 </template>
 
 <script>

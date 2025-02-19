@@ -1,5 +1,5 @@
 <template lang="pug">
-.key-note(:class="['key-note', { active: isActive }]" :style="{ 'background-color': isActive ? color : 'white' }" @mousedown="handleMouseDown" @mouseup="handleMouseUp")
+.key-note(:class="['key-note', { active: isActive }]" :style="{ 'background-color': isActive ? color : isBlack ? 'black' : 'white' }" @mousedown="handleMouseDown" @mouseup="handleMouseUp")
   .note-name {{ note }}
 </template>
 
@@ -11,6 +11,7 @@ export default defineComponent({
     note: String,
     isActive: Boolean,
     color: String,
+    isBlack: Boolean,
   },
   setup(props, { emit }) {
     const { note, isActive } = toRefs(props)
