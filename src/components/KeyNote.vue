@@ -1,5 +1,5 @@
 <template lang="pug">
-.key-note(:class="['key', { active: isActive }]" @mousedown="handleMouseDown" @mouseup="handleMouseUp")
+.key-note(:class="['key-note', { active: isActive }]" :style="{ 'background-color': isActive ? color : 'white' }" @mousedown="handleMouseDown" @mouseup="handleMouseUp")
   .note-name {{ note }}
 </template>
 
@@ -10,6 +10,7 @@ export default defineComponent({
   props: {
     note: String,
     isActive: Boolean,
+    color: String,
   },
   setup(props, { emit }) {
     const { note, isActive } = toRefs(props)
@@ -60,13 +61,12 @@ export default defineComponent({
   display flex
   justify-content center
   align-items flex-end
+  color gray
+  border-radius 0 0 5px 5px
 
-
-
+.key-note.black
+  box-shadow 1px 1px 5px 0 rgba(0, 0, 0, 0.5)
 .note-name
   font-size .8em
   margin-bottom 1em
-
-.key-note.active
-  background-color yellow
 </style>

@@ -9,7 +9,7 @@
         option(v-for="(program, index) in programs" :key="index" :value="index") {{ program }}
 
     .keyboard
-      KeyNote(v-for="(note, index) in notes" :key="note" :note="note" :isActive="activeNotes.includes(note)" :class="{ black: isBlackKey(note) }"  @note-on="handleNoteOn" @note-off="handleNoteOff") @note-off="handleNoteOff")
+      KeyNote(v-for="([note, {color}], index) in Object.entries(notes)" :key="note" :note="note" :color="color" :isActive="activeNotes.includes(note)" :class="{ black: isBlackKey(note) }"  @note-on="handleNoteOn" @note-off="handleNoteOff") @note-off="handleNoteOff")
 </template>
 
 <script>
@@ -22,7 +22,20 @@ export default {
     KeyNote,
   },
   setup() {
-    const notes = ref(['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']) // Add semitones
+    const notes = ref({
+      C: { color: 'rgb(255, 0, 0)' },
+      'C#': { color: 'rgb(255,105, 180)' },
+      D: { color: 'rgb(255, 165, 0)' },
+      'D#': { color: 'rgb(255, 20, 147)' },
+      E: { color: 'rgb(255, 255, 0)' },
+      F: { color: 'rgb(0, 255, 0)' },
+      'F#': { color: 'rgb(0, 191, 255)' },
+      G: { color: 'rgb(0, 0, 255)' },
+      'G#': { color: 'rgb(128, 0, 128)' },
+      A: { color: 'rgb(75, 0, 130)' },
+      'A#': { color: 'rgb(210, 180, 140)' },
+      B: { color: 'rgb(238, 130, 238)' },
+    })
     const activeNotes = ref([])
     const programs = ref(['Piano', 'Guitar', 'Violin', 'Flute', 'Drums']) // Example program names
     const selectedProgram = ref(0) // Default to the first program
@@ -55,22 +68,22 @@ export default {
     }
 
     const handleNoteOn = (note) => {
-      if (instrumentType.value === 'midi') {
-        if (!activeNotes.value.includes(note)) {
-          activeNotes.value.push(note)
+      if (!activeNotes.value.includes(note)) {
+        activeNotes.value.push(note)
+        if (instrumentType.value === 'midi') {
           const midiNote = noteToMidi(note)
           if (output) {
             output.send([0x90, midiNote, 0x7f]) // Note on, velocity 127
           }
+        } else {
+          simpleInstrument.playNote(note)
         }
-      } else {
-        simpleInstrument.playNote(note)
       }
     }
 
     const handleNoteOff = (note) => {
+      activeNotes.value = activeNotes.value.filter((n) => n !== note)
       if (instrumentType.value === 'midi') {
-        activeNotes.value = activeNotes.value.filter((n) => n !== note)
         const midiNote = noteToMidi(note)
         if (output) {
           output.send([0x80, midiNote, 0x40]) // Note off, velocity 64
@@ -143,7 +156,6 @@ export default {
   width 40px
   height 150px
   border 1px solid #000
-  background-color #fff
   z-index 1
 
 
@@ -154,8 +166,4 @@ export default {
   margin-left -15px
   margin-right -15px
   z-index 2
-  color white
-
-.key-note.active
-  background-color #f00
 </style>

@@ -3,7 +3,16 @@ import Keyboard from './components/Keyboard.vue'
 </script>
 
 <template lang="pug">
-  Keyboard
+  .app
+    Keyboard
 </template>
 
-<style scoped></style>
+<style lang="stylus">
+.app
+  background-color gray
+  display flex
+  justify-content center
+  align-items center
+  height 100vh
+  width 100%
+</style>
