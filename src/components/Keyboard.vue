@@ -5,9 +5,6 @@
         option(value="midi") MIDI
         option(value="simple") Simple Instrument
 
-      select(@change="onProgramChange($event)" v-model="selectedProgram" v-if="instrumentType === 'midi'")
-        option(v-for="(program, index) in programs" :key="index" :value="index") {{ program }}
-
     .keyboard
       KeyNote(v-for="([note, {color}], index) in Object.entries(notes)" :key="note" :note="note" :color="color" :isBlack="isBlackKey(note)" :isActive="activeNotes.includes(note)" :class="{ black: isBlackKey(note) }"  @note-on="handleNoteOn" @note-off="handleNoteOff") @note-off="handleNoteOff")
 </template>
@@ -23,18 +20,18 @@ export default {
   },
   setup() {
     const notes = ref({
-      C: { color: 'rgb(255, 0, 0)' },
-      'C#': { color: 'rgb(255,105, 180)' },
-      D: { color: 'rgb(255, 165, 0)' },
-      'D#': { color: 'rgb(255, 20, 147)' },
-      E: { color: 'rgb(255, 255, 0)' },
-      F: { color: 'rgb(0, 255, 0)' },
-      'F#': { color: 'rgb(0, 191, 255)' },
-      G: { color: 'rgb(0, 0, 255)' },
-      'G#': { color: 'rgb(128, 0, 128)' },
-      A: { color: 'rgb(75, 0, 130)' },
-      'A#': { color: 'rgb(210, 180, 140)' },
-      B: { color: 'rgb(238, 130, 238)' },
+      C: { color: 'rgb(255, 0, 0)', midi: 60 },
+      'C#': { color: 'rgb(255,105, 180)', midi: 61 },
+      D: { color: 'rgb(255, 165, 0)', midi: 62 },
+      'D#': { color: 'rgb(255, 20, 147)', midi: 63 },
+      E: { color: 'rgb(255, 255, 0)', midi: 64 },
+      F: { color: 'rgb(0, 255, 0)', midi: 65 },
+      'F#': { color: 'rgb(0, 191, 255)', midi: 66 },
+      G: { color: 'rgb(0, 0, 255)', midi: 67 },
+      'G#': { color: 'rgb(128, 0, 128)', midi: 68 },
+      A: { color: 'rgb(75, 0, 130)', midi: 69 },
+      'A#': { color: 'rgb(210, 180, 140)', midi: 70 },
+      B: { color: 'rgb(238, 130, 238)', midi: 71 },
     })
     const activeNotes = ref([])
     const programs = ref(['Piano', 'Guitar', 'Violin', 'Flute', 'Drums']) // Example program names
@@ -48,24 +45,12 @@ export default {
       try {
         midiAccess = await navigator.requestMIDIAccess()
         output = Array.from(midiAccess.outputs.values())[0] // Get the first available MIDI output
-        changeInstrument(selectedProgram.value) // Set initial instrument
       } catch (err) {
         console.error('Could not access MIDI devices:', err)
       }
     })
 
-    const noteToMidi = (note) => {
-      const noteMap = {
-        C: 60,
-        D: 62,
-        E: 64,
-        F: 65,
-        G: 67,
-        A: 69,
-        B: 71,
-      }
-      return noteMap[note]
-    }
+    const noteToMidi = (note) => notes.value[note].midi
 
     const handleNoteOn = (note) => {
       if (!activeNotes.value.includes(note)) {
