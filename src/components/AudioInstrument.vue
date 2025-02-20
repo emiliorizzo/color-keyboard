@@ -28,6 +28,14 @@
             .audio-instrument-controls-item
                 label Release
                 input(type="range" min="0" max="1" step="0.01" v-model.number="release")
+            .audio-instrument-controls-item
+                label Filter Frequency
+                input(type="range" min="20" max="20000" step="1" v-model.number="filterFrequency")
+                span {{ filterFrequency }}
+            .audio-instrument-controls-item
+                label Filter Q
+                input(type="range" min="0.1" max="20" step="0.1" v-model.number="filterQ")
+                span {{ filterQ }}
 </template>
 
 <script>
@@ -97,6 +105,10 @@ export default {
     const release = ref(0.1)
     const selectedPreset = ref('Custom')
 
+    // Reactive properties for filter controls
+    const filterFrequency = ref(1000) // Default filter frequency
+    const filterQ = ref(1) // Default filter Q
+
     const validateEnvelopeValue = (value, defaultValue) => {
       return typeof value === 'number' && isFinite(value) && value >= 0 ? value : defaultValue
     }
@@ -121,26 +133,37 @@ export default {
 
     const playNote = (note) => {
       if (!oscillators[note.name]) {
-        // Use the note's frequency directly
         const frequencyValue = noteToFrequency(note)
         const oscillator = audioContext.createOscillator()
         const gainNode = audioContext.createGain()
 
+        // Create a low-pass filter
+        const filter = audioContext.createBiquadFilter()
+        filter.type = 'lowpass'
+        filter.frequency.setValueAtTime(filterFrequency.value, audioContext.currentTime)
+        filter.Q.setValueAtTime(filterQ.value, audioContext.currentTime)
+
         oscillator.type = oscillatorType.value
         oscillator.frequency.setValueAtTime(frequencyValue, audioContext.currentTime)
         oscillator.detune.setValueAtTime(detune.value, audioContext.currentTime)
-        oscillator.connect(gainNode)
+
+        // Connect nodes
+        oscillator.connect(filter)
+        filter.connect(gainNode)
         gainNode.connect(audioContext.destination)
 
         // Validate envelope values
         const validAttack = validateEnvelopeValue(attack.value, 0.01)
         const validDecay = validateEnvelopeValue(decay.value, 0.1)
         const validSustain = validateEnvelopeValue(sustain.value, 0.7)
-        // ADSR Envelope
-        const now = audioContext.currentTime
-        gainNode.gain.setValueAtTime(0, now)
-        gainNode.gain.linearRampToValueAtTime(1, now + validAttack) // Attack
-        gainNode.gain.linearRampToValueAtTime(validSustain, now + validAttack + validDecay) // Decay
+
+        // Adjust gain to prevent clipping
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime)
+        gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + validAttack) // Lower peak gain
+        gainNode.gain.linearRampToValueAtTime(
+          validSustain * 0.3,
+          audioContext.currentTime + validAttack + validDecay,
+        ) // Lower sustain gain
 
         oscillator.start()
         oscillators[note.name] = oscillator
@@ -155,9 +178,6 @@ export default {
 
         // Validate release value
         const validRelease = validateEnvelopeValue(release.value, 0.1)
-
-        // Debugging log
-        console.log('Release:', validRelease)
 
         // Release phase
         gainNode.gain.cancelScheduledValues(now)
@@ -226,6 +246,8 @@ export default {
       release,
       presets,
       selectedPreset,
+      filterFrequency,
+      filterQ,
     }
   },
 }
