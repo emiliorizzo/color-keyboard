@@ -110,14 +110,14 @@ export default {
 
     const handleKeyDown = (event) => {
       const noteName = keyToNoteMap[event.key.toLowerCase()]
-      if (noteName) {
+      if (noteName && !activeNotes.value.includes(noteName)) {
         handleNoteOn(noteName)
       }
     }
 
     const handleKeyUp = (event) => {
       const noteName = keyToNoteMap[event.key.toLowerCase()]
-      if (noteName) {
+      if (noteName && activeNotes.value.includes(noteName)) {
         handleNoteOff(noteName)
       }
     }
