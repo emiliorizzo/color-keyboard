@@ -3,8 +3,8 @@
     .keyboard-header
       select(@change="onInstrumentTypeChange($event)" v-model="instrumentType")
         option(value="midi") MIDI
-        option(value="simple") Simple Instrument
-
+        option(value="simple") Simple Synthesizer
+    AudioInstrument(v-if="instrumentType === 'simple'" ref="simpleInstrument")
     .keyboard
       KeyNote(v-for="(noteObj, note) in notes" :key="note" :note="{ name: note, key: getKeyFromNote(note), ...noteObj }" :isBlack="isBlackKey(note)" :isActive="activeNotes.includes(note)" :class="{ black: isBlackKey(note) }" @note-on="handleNoteOn" @note-off="handleNoteOff")
 </template>
@@ -12,11 +12,12 @@
 <script>
 import { ref, onMounted, computed, onUnmounted } from 'vue'
 import KeyNote from './KeyNote.vue'
-import { AudioInstrument } from '../utils/audioInstrument.js'
+import AudioInstrument from './AudioInstrument.vue'
 
 export default {
   components: {
     KeyNote,
+    AudioInstrument,
   },
   setup() {
     const notes = ref({
@@ -68,7 +69,7 @@ export default {
     const instrumentType = ref('simple') // Default to MIDI
     let midiAccess = null
     let output = null
-    const simpleInstrument = new AudioInstrument()
+    const simpleInstrument = ref(null)
 
     const keyToNoteMap = {
       a: 'C3',
@@ -130,8 +131,8 @@ export default {
           if (output) {
             output.send([0x90, midiNote, 0x7f]) // Note on, velocity 127
           }
-        } else {
-          simpleInstrument.playNote({ name: noteName, ...note }) // Pass the full note object
+        } else if (simpleInstrument.value) {
+          simpleInstrument.value.playNote({ name: noteName, ...note })
         }
       }
     }
@@ -144,8 +145,8 @@ export default {
         if (output) {
           output.send([0x80, midiNote, 0x40]) // Note off, velocity 64
         }
-      } else {
-        simpleInstrument.stopNote({ name: noteName, ...note }) // Pass the full note object
+      } else if (simpleInstrument.value) {
+        simpleInstrument.value.stopNote({ name: noteName, ...note })
       }
     }
 
@@ -186,6 +187,7 @@ export default {
       onInstrumentTypeChange,
       isBlackKey,
       getKeyFromNote,
+      simpleInstrument,
     }
   },
 }
