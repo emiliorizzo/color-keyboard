@@ -6,26 +6,16 @@ export class AudioInstrument {
     }
 
     noteToFrequency(note) {
-        const noteMap = {
-            'C': 261.63, // Frequency for Middle C
-            'C#': 277.18,
-            'D': 293.66,
-            'D#': 311.13,
-            'E': 329.63,
-            'F': 349.23,
-            'F#': 369.99,
-            'G': 392.00,
-            'G#': 415.30,
-            'A': 440.00, // Frequency for A4
-            'A#': 466.16,
-            'B': 493.88,
+        if (!note || !note.midi) {
+            throw new Error(`Invalid note object: ${note}`)
         }
-        return noteMap[note]
+        const midiNumber = note.midi // Access the MIDI number from the note object
+        return 440 * Math.pow(2, (midiNumber - 69) / 12)
     }
 
     playNote(note) {
-        if (!this.oscillators[note]) {
-            const frequency = this.noteToFrequency(note)
+        if (!this.oscillators[note.name]) {
+            const frequency = this.noteToFrequency(note) // Pass the entire note object
             const oscillator = this.audioContext.createOscillator()
             const gainNode = this.audioContext.createGain()
 
@@ -39,25 +29,25 @@ export class AudioInstrument {
             gainNode.gain.linearRampToValueAtTime(1, this.audioContext.currentTime + 0.01)
 
             oscillator.start()
-            this.oscillators[note] = oscillator
-            this.gainNodes[note] = gainNode
+            this.oscillators[note.name] = oscillator
+            this.gainNodes[note.name] = gainNode
         }
     }
 
     stopNote(note) {
-        if (this.oscillators[note]) {
-            const gainNode = this.gainNodes[note]
+        if (this.oscillators[note.name]) {
+            const gainNode = this.gainNodes[note.name]
 
             // Fade out
             gainNode.gain.setValueAtTime(1, this.audioContext.currentTime)
             gainNode.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + 0.01)
 
             setTimeout(() => {
-                this.oscillators[note].stop()
-                this.oscillators[note].disconnect()
+                this.oscillators[note.name].stop()
+                this.oscillators[note.name].disconnect()
                 gainNode.disconnect()
-                delete this.oscillators[note]
-                delete this.gainNodes[note]
+                delete this.oscillators[note.name]
+                delete this.gainNodes[note.name]
             }, 20) // Wait for fade out to complete
         }
     }
