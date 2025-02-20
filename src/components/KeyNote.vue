@@ -5,8 +5,10 @@
   @mousedown="handleMouseDown"
   @mouseup="handleMouseUp"
 )
-  .note-name {{ note.name }}
-  .note-key(v-if="note.key") {{ note.key }}
+  .note-label
+    .note-name {{ note.name }}
+    .note-key(v-if="note.key") {{ note.key }}
+    .note-key(v-else) &nbsp;
 </template>
 
 <script>
@@ -55,8 +57,6 @@ export default defineComponent({
 
 <style lang="stylus">
 .key-note
-  width 40px
-  height 120px
   border 1px solid black
   margin 2px
   padding 0
@@ -76,12 +76,17 @@ export default defineComponent({
 .key-note.black
   box-shadow 1px 1px 5px 0 rgba(0, 0, 0, 0.5)
 
-.note-name, .note-key
-  width 100%
+
+.note-label
+  font-size .8em
+  margin-bottom 1em
+
+.note-key, .note-name
+  font-size .8em
+  margin 0
+  line-height 1
+
 .note-name
-  font-size .8em
-  margin-bottom 1em
-.note-key
-  font-size .8em
-  margin-bottom 1em
+  font-weight bold
+  margin-bottom .5em
 </style>
